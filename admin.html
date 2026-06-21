@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Feliciano Admin</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Great+Vibes" rel="stylesheet">
+    <link rel="stylesheet" href="css/open-iconic-bootstrap.min.css">
+    <link rel="stylesheet" href="css/icomoon.css">
+    <link rel="stylesheet" href="css/admin.css">
+  </head>
+  <body>
+    <main class="admin-shell">
+      <section class="login-panel" id="loginPanel">
+        <div class="login-card">
+          <span class="brand-script">Feliciano</span>
+          <h1>Admin Dashboard</h1>
+          <p>Manage bookings, menu images, gallery images, and live website settings.</p>
+          <form id="loginForm">
+            <label>Username<input name="username" autocomplete="username" required></label>
+            <label>Password<input name="password" type="password" autocomplete="current-password" required></label>
+            <button type="submit">Sign in</button>
+            <div class="form-status" id="loginStatus"></div>
+          </form>
+        </div>
+      </section>
+
+      <section class="dashboard is-hidden" id="dashboard">
+        <aside class="admin-sidebar">
+          <div>
+            <span class="brand-script">Feliciano</span>
+            <h2>Owner Console</h2>
+          </div>
+          <nav>
+            <a href="#bookings">Bookings</a>
+            <a href="#uploads">Menu & Images</a>
+            <a href="#settings">Website Settings</a>
+            <a href="#home-images">Homepage Images</a>
+          </nav>
+          <button class="ghost-button" id="logoutButton">Sign out</button>
+        </aside>
+
+        <div class="admin-content">
+          <header class="admin-header">
+            <div>
+              <p>Live template management</p>
+              <h1>Restaurant Website Dashboard</h1>
+            </div>
+            <a class="site-link" href="index.html">View website</a>
+          </header>
+
+          <section class="panel" id="bookings">
+            <div class="panel-heading">
+              <div>
+                <span>Reservations</span>
+                <h2>Bookings</h2>
+              </div>
+              <button class="ghost-button" id="refreshBookings">Refresh</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>Guest</th><th>When</th><th>Guests</th><th>Contact</th><th>Message</th><th></th></tr>
+                </thead>
+                <tbody id="bookingsBody"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="panel" id="uploads">
+            <div class="panel-heading">
+              <div>
+                <span>Cloudinary gallery</span>
+                <h2>Menu & Image Uploads</h2>
+              </div>
+            </div>
+            <form class="grid-form" id="imageForm">
+              <label>Image title<input name="title" placeholder="Chef special, drinks menu, brunch menu"></label>
+              <label>Image type
+                <select name="type">
+                  <option value="item">Individual item image</option>
+                  <option value="full-menu">Full menu image</option>
+                </select>
+              </label>
+              <label>Upload image<input name="image" type="file" accept="image/*"></label>
+              <label>Or paste Cloudinary URL<input name="url" type="url" placeholder="https://res.cloudinary.com/..."></label>
+              <button type="submit">Save image</button>
+              <div class="form-status" id="imageStatus"></div>
+            </form>
+            <div class="image-admin-grid" id="adminImages"></div>
+          </section>
+
+          <section class="panel" id="settings">
+            <div class="panel-heading">
+              <div>
+                <span>Public website</span>
+                <h2>Website Settings</h2>
+              </div>
+            </div>
+            <form class="grid-form" id="settingsForm">
+              <label>Hotel / restaurant name<input name="restaurantName" required></label>
+              <label>Facebook link<input name="facebookLink" type="url"></label>
+              <label>Instagram link<input name="instagramLink" type="url"></label>
+              <label>Twitter / X link<input name="twitterLink" type="url"></label>
+              <label>Opening time<input name="openingTime" placeholder="9:00"></label>
+              <label>Closing time<input name="closingTime" placeholder="24:00"></label>
+              <label class="wide">Google Maps iframe code or src<textarea name="googleMapsEmbed" rows="4"></textarea></label>
+              <button type="submit">Save settings</button>
+              <div class="form-status" id="settingsStatus"></div>
+            </form>
+          </section>
+
+          <section class="panel" id="home-images">
+            <div class="panel-heading">
+              <div>
+                <span>Cloudinary URLs</span>
+                <h2>Homepage Image Settings</h2>
+              </div>
+            </div>
+            <form class="grid-form" id="homeImagesForm">
+              <label>Hero image 1<input name="heroImage1"></label>
+              <label>Hero image 1 secondary<input name="heroImage1Secondary"></label>
+              <label>Hero image 2<input name="heroImage2"></label>
+              <label>Hero image 2 secondary<input name="heroImage2Secondary"></label>
+              <label>About image 1<input name="aboutImage1"></label>
+              <label>About image 2<input name="aboutImage2"></label>
+              <label>Booking side image<input name="bookingSideImage"></label>
+              <label>Menu page header image<input name="menuHeaderImage"></label>
+              <label>Gallery page header image<input name="galleryHeaderImage"></label>
+              <label>Contact page header image<input name="contactHeaderImage"></label>
+              <button type="submit">Save homepage images</button>
+              <div class="form-status" id="homeImagesStatus"></div>
+            </form>
+          </section>
+        </div>
+      </section>
+    </main>
+    <script src="js/admin.js"></script>
+  </body>
+</html>
