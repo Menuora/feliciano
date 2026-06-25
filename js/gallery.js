@@ -27,11 +27,12 @@
     const grid = document.querySelector('[data-gallery-grid]');
     if (!grid) return;
     try {
-      const response = await fetch('/api/images');
-      const images = await response.json();
+      if (!window.dbApi) throw new Error("Database API not available.");
+      const images = await window.dbApi.dbGetMedia();
       grid.innerHTML = images.length ? images.map(card).join('') : '<div class="col-12 text-center"><p>No menu images have been uploaded yet.</p></div>';
-    } catch {
-      grid.innerHTML = '<div class="col-12 text-center"><p>Gallery images are available when the site is running on Vercel or npm run dev.</p></div>';
+    } catch (error) {
+      console.error("Error loading gallery:", error);
+      grid.innerHTML = '<div class="col-12 text-center"><p>No menu images have been uploaded yet.</p></div>';
     }
   }
 

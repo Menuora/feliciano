@@ -3,13 +3,6 @@
   const loginPanel = $('#loginPanel');
   const dashboard = $('#dashboard');
 
-  async function api(url, options = {}) {
-    const response = await fetch(url, options);
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(data.error || 'Request failed');
-    return data;
-  }
-
   function setStatus(id, message) {
     const el = $(id);
     if (el) el.textContent = message;
@@ -22,39 +15,51 @@
   }
 
   async function loadSettings() {
-    const settings = await api('/api/settings');
-    fillForm($('#settingsForm'), settings);
-    fillForm($('#homeImagesForm'), settings.images || {});
+    try {
+      const settings = await window.dbApi.dbGetSettings();
+      fillForm($('#settingsForm'), settings);
+      fillForm($('#homeImagesForm'), settings.images || {});
+    } catch (error) {
+      console.error("Error loading settings:", error);
+    }
   }
 
   async function loadBookings() {
-    const bookings = await api('/api/admin/bookings');
-    const body = $('#bookingsBody');
-    body.innerHTML = bookings.length ? bookings.map((booking) => `
-      <tr>
-        <td><strong>${escapeHtml(booking.name)}</strong><br>${new Date(booking.createdAt).toLocaleString()}</td>
-        <td>${escapeHtml(booking.date)}<br>${escapeHtml(booking.time)}</td>
-        <td>${escapeHtml(booking.guests)}</td>
-        <td>${escapeHtml(booking.phone)}<br>${escapeHtml(booking.email || '')}</td>
-        <td>${escapeHtml(booking.message || '')}</td>
-        <td><button class="danger" data-delete-booking="${booking.id}">Delete</button></td>
-      </tr>
-    `).join('') : '<tr><td colspan="6">No bookings yet.</td></tr>';
+    try {
+      const bookings = await window.dbApi.dbGetBookings();
+      const body = $('#bookingsBody');
+      body.innerHTML = bookings.length ? bookings.map((booking) => `
+        <tr>
+          <td><strong>${escapeHtml(booking.name)}</strong><br>${new Date(booking.createdAt).toLocaleString()}</td>
+          <td>${escapeHtml(booking.date)}<br>${escapeHtml(booking.time)}</td>
+          <td>${escapeHtml(booking.guests)}</td>
+          <td>${escapeHtml(booking.phone)}<br>${escapeHtml(booking.email || '')}</td>
+          <td>${escapeHtml(booking.message || '')}</td>
+          <td><button class="danger" data-delete-booking="${booking.id}">Delete</button></td>
+        </tr>
+      `).join('') : '<tr><td colspan="6">No bookings yet.</td></tr>';
+    } catch (error) {
+      console.error("Error loading bookings:", error);
+    }
   }
 
   async function loadImages() {
-    const images = await api('/api/images');
-    const target = $('#adminImages');
-    target.innerHTML = images.length ? images.map((image) => `
-      <article class="image-card">
-        <img src="${escapeAttribute(image.url)}" alt="${escapeAttribute(image.title)}">
-        <div>
-          <strong>${escapeHtml(image.title)}</strong>
-          <p>${image.type === 'full-menu' ? 'Full menu image' : 'Individual item image'}</p>
-          <button class="danger" data-delete-image="${image.id}">Delete</button>
-        </div>
-      </article>
-    `).join('') : '<p>No gallery images yet.</p>';
+    try {
+      const images = await window.dbApi.dbGetMedia();
+      const target = $('#adminImages');
+      target.innerHTML = images.length ? images.map((image) => `
+        <article class="image-card">
+          <img src="${escapeAttribute(image.url)}" alt="${escapeAttribute(image.title)}">
+          <div>
+            <strong>${escapeHtml(image.title)}</strong>
+            <p>${image.type === 'full-menu' ? 'Full menu image' : 'Individual item image'}</p>
+            <button class="danger" data-delete-image="${image.id}">Delete</button>
+          </div>
+        </article>
+      `).join('') : '<p>No gallery images yet.</p>';
+    } catch (error) {
+      console.error("Error loading images:", error);
+    }
   }
 
   async function showDashboard() {
@@ -63,9 +68,19 @@
     await Promise.all([loadSettings(), loadBookings(), loadImages()]);
   }
 
-  async function checkSession() {
-    const me = await api('/api/admin/me');
-    if (me.isAdmin) await showDashboard();
+  function checkSession() {
+    if (!window.dbApi) {
+      console.error("Database API not initialized!");
+      return;
+    }
+    window.dbApi.dbCheckAuth(async function (user) {
+      if (user) {
+        await showDashboard();
+      } else {
+        loginPanel.classList.remove('is-hidden');
+        dashboard.classList.add('is-hidden');
+      }
+    });
   }
 
   function escapeHtml(value) {
@@ -86,20 +101,16 @@
     event.preventDefault();
     setStatus('#loginStatus', 'Signing in...');
     try {
-      await api('/api/admin/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(Object.fromEntries(new FormData(event.target)))
-      });
+      const formData = Object.fromEntries(new FormData(event.target));
+      await window.dbApi.dbLogin(formData.username || formData.email, formData.password);
       setStatus('#loginStatus', '');
-      await showDashboard();
     } catch (error) {
       setStatus('#loginStatus', error.message);
     }
   });
 
   $('#logoutButton').addEventListener('click', async () => {
-    await api('/api/admin/logout', { method: 'POST' });
+    await window.dbApi.dbLogout();
     location.reload();
   });
 
@@ -108,26 +119,33 @@
   $('#bookingsBody').addEventListener('click', async (event) => {
     const id = event.target.dataset.deleteBooking;
     if (!id) return;
-    await api(`/api/admin/bookings/${id}`, { method: 'DELETE' });
-    await loadBookings();
+    if (!confirm('Are you sure you want to delete this booking?')) return;
+    try {
+      await window.dbApi.dbDeleteBooking(id);
+      await loadBookings();
+    } catch (error) {
+      alert(error.message);
+    }
   });
 
   $('#adminImages').addEventListener('click', async (event) => {
     const id = event.target.dataset.deleteImage;
     if (!id) return;
-    await api(`/api/admin/images/${id}`, { method: 'DELETE' });
-    await loadImages();
+    if (!confirm('Are you sure you want to delete this image?')) return;
+    try {
+      await window.dbApi.dbDeleteMediaItem(id);
+      await loadImages();
+    } catch (error) {
+      alert(error.message);
+    }
   });
 
   $('#settingsForm').addEventListener('submit', async (event) => {
     event.preventDefault();
     setStatus('#settingsStatus', 'Saving...');
     try {
-      await api('/api/admin/settings', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(Object.fromEntries(new FormData(event.target)))
-      });
+      const settings = Object.fromEntries(new FormData(event.target));
+      await window.dbApi.dbUpdateSettings(settings);
       setStatus('#settingsStatus', 'Settings saved.');
     } catch (error) {
       setStatus('#settingsStatus', error.message);
@@ -138,11 +156,8 @@
     event.preventDefault();
     setStatus('#homeImagesStatus', 'Saving...');
     try {
-      await api('/api/admin/home-images', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(Object.fromEntries(new FormData(event.target)))
-      });
+      const images = Object.fromEntries(new FormData(event.target));
+      await window.dbApi.dbUpdateImages(images);
       setStatus('#homeImagesStatus', 'Image settings saved.');
     } catch (error) {
       setStatus('#homeImagesStatus', error.message);
@@ -153,7 +168,29 @@
     event.preventDefault();
     setStatus('#imageStatus', 'Saving image...');
     try {
-      await api('/api/admin/images', { method: 'POST', body: new FormData(event.target) });
+      const formData = new FormData(event.target);
+      const title = formData.get('title');
+      const type = formData.get('type');
+      const urlInput = formData.get('url');
+      const fileInput = event.target.querySelector('input[type="file"]').files[0];
+
+      let imageUrl = '';
+      let publicId = '';
+
+      if (fileInput) {
+        setStatus('#imageStatus', 'Uploading to Cloudinary...');
+        const result = await window.dbApi.dbUploadImage(fileInput);
+        imageUrl = result.url;
+        publicId = result.publicId;
+      } else if (urlInput) {
+        imageUrl = urlInput;
+      } else {
+        throw new Error('Please select a file to upload or paste a URL.');
+      }
+
+      setStatus('#imageStatus', 'Saving to database...');
+      await window.dbApi.dbAddMediaItem(title, type, imageUrl, publicId);
+      
       event.target.reset();
       setStatus('#imageStatus', 'Image saved.');
       await loadImages();
@@ -162,5 +199,25 @@
     }
   });
 
-  checkSession().catch(() => {});
+  $('#passwordForm').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    setStatus('#passwordStatus', 'Changing password...');
+    try {
+      const currentPassword = event.target.elements.currentPassword.value;
+      const newPassword = event.target.elements.newPassword.value;
+      const confirmPassword = event.target.elements.confirmPassword.value;
+
+      if (newPassword !== confirmPassword) {
+        throw new Error('New passwords do not match');
+      }
+
+      await window.dbApi.dbChangePassword(currentPassword, newPassword);
+      event.target.reset();
+      setStatus('#passwordStatus', 'Password changed successfully.');
+    } catch (error) {
+      setStatus('#passwordStatus', error.message);
+    }
+  });
+
+  checkSession();
 })();

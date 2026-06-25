@@ -37,6 +37,7 @@
             <a href="#uploads">Menu & Images</a>
             <a href="#settings">Website Settings</a>
             <a href="#home-images">Homepage Images</a>
+            <a href="#change-password">Change Password</a>
           </nav>
           <button class="ghost-button" id="logoutButton">Sign out</button>
         </aside>
@@ -133,9 +134,31 @@
               <div class="form-status" id="homeImagesStatus"></div>
             </form>
           </section>
+
+          <section class="panel" id="change-password">
+            <div class="panel-heading">
+              <div>
+                <span>Security</span>
+                <h2>Change Admin Password</h2>
+              </div>
+            </div>
+            <form class="grid-form" id="passwordForm">
+              <label>Current password<input name="currentPassword" type="password" required></label>
+              <label>New password<input name="newPassword" type="password" required></label>
+              <label>Confirm new password<input name="confirmPassword" type="password" required></label>
+              <button type="submit">Change password</button>
+              <div class="form-status" id="passwordStatus"></div>
+            </form>
+          </section>
         </div>
       </section>
     </main>
+    <!-- Firebase Compat SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="js/env.js"></script>
+    <script src="js/firebase-db.js"></script>
     <script src="js/admin.js"></script>
   </body>
 </html>

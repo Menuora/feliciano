@@ -45,9 +45,11 @@
 
   async function loadSettings() {
     try {
-      const response = await fetch('/api/settings');
-      if (!response.ok) return;
-      const settings = { ...defaults, ...(await response.json()) };
+      if (!window.dbApi) {
+        console.warn("dbApi not loaded, settings fallback active");
+        return;
+      }
+      const settings = await window.dbApi.dbGetSettings();
       const images = settings.images || {};
       setText('[data-setting-name]', settings.restaurantName);
       setHref('[data-setting-facebook]', settings.facebookLink);
@@ -65,8 +67,8 @@
       setBackground('[data-menu-header]', images.menuHeaderImage);
       setBackground('[data-gallery-header]', images.galleryHeaderImage);
       setBackground('[data-contact-header]', images.contactHeaderImage);
-    } catch {
-      // Static hosting can still show the original template with fallback images.
+    } catch (e) {
+      console.error("Error loading settings:", e);
     }
   }
 

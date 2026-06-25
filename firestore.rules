@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if the user is logged in as an admin
+    function isAdmin() {
+      return request.auth != null;
+    }
+
+    // Rules for config documents (settings, home images)
+    match /config/{document} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Rules for media collection (restaurant gallery images)
+    match /media/{document} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Rules for bookings collection
+    match /bookings/{document} {
+      allow create: if true;                     // Anyone can submit a table reservation
+      allow read, update, delete: if isAdmin();   // Only authenticated admin users can view or delete bookings
+    }
+  }
+}

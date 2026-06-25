@@ -1,55 +1,34 @@
 # Feliciano Hotel & Restaurant Template
 
-Vercel-ready hotel and restaurant website template with a professional `/admin` dashboard for bookings, Cloudinary images, website settings, and homepage image settings.
+Serverless, static-hosted restaurant and hotel website template with a professional `/admin` dashboard for bookings, Cloudinary image uploads, website settings, and homepage image customization.
 
 ## Local Setup
 
-1. Install dependencies:
+1. Copy the environment configuration template:
    ```bash
-   npm install
+   copy js/env.example.js js/env.js
    ```
 
-2. Copy the environment example:
-   ```bash
-   copy .env.example .env
-   ```
+2. Fill in the credentials inside `js/env.js`. If you leave it empty or configure placeholders, the template will automatically fall back to **LocalStorage Mode** (so you can run and test everything completely locally with zero setup!).
+   - **Firebase Configuration:** Set up a free Firebase project, enable Firestore and Email/Password Auth, and insert your app credentials.
+   - **Cloudinary Configuration:** Add your Cloudinary `cloudName` and create an unsigned `uploadPreset` to enable client-side image uploads.
 
-3. Fill in:
-   - `ADMIN_USERNAME`
-   - `ADMIN_PASSWORD`
-   - `SESSION_SECRET`
-   - `CLOUDINARY_CLOUD_NAME`
-   - `CLOUDINARY_API_KEY`
-   - `CLOUDINARY_API_SECRET`
-
-4. Run locally:
+3. Run locally:
    ```bash
    npm run dev
    ```
 
-5. Open:
+4. Open:
    - Website: `http://localhost:3000`
-   - Admin: `http://localhost:3000/admin`
+   - Admin: `http://localhost:3000/admin.html` (or `http://localhost:3000/admin` depending on server rewrites)
 
-`npm run dev` uses the local Express server and does not ask for a Vercel login.
+## Deployment
 
-## Verification
+Since the template has no server-side Node.js code, it can be hosted on any static hosting provider (e.g., GitHub Pages, Vercel, Netlify, Firebase Hosting, Cloudflare Pages).
 
-Run:
+1. Build/Deploy the repository files as static assets.
+2. Ensure you rewrite `/admin` to `/admin.html` if you want clean URLs (already configured in `vercel.json`).
+3. Fill out `js/env.js` with the production Firebase and Cloudinary credentials.
+4. **Deploy Firestore Rules**: Apply the security rules defined in the root `firestore.rules` file to your Firebase console under **Firestore Database > Rules** (or deploy via Firebase CLI) to secure config, media, and bookings data.
+5. Give the hotel owner the deployed admin page URL and the configured login credentials.
 
-```bash
-npm run check
-npm run smoke
-```
-
-The smoke test confirms `/admin` loads, protected admin APIs block before login, settings work, booking creation works, login works, and the public image page loads.
-
-## Deploy To Vercel
-
-1. Push the project to GitHub.
-2. Import it in Vercel.
-3. Add the same environment variables from `.env.example` in Vercel project settings.
-4. Deploy.
-5. Give the hotel owner the deployed `/admin` URL and login credentials.
-
-GitHub Pages can still host the static pages, but bookings, admin login, settings, and Cloudinary-backed gallery data require the Vercel/API setup.
